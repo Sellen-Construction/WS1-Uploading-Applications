@@ -234,7 +234,7 @@ def CreateApp(app_id, blob = False):
     data = json.dumps(data)
     print(data)
 
-    return CallAPI("/mam/apps/internal/begininstall", data)
+    return CallAPI("/mam/apps/internal/begininstall", data, False)
 
 
 # Set run to "blob" to upload file as Blob data or "chunk" to upload in Chunks
