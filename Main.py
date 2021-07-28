@@ -71,7 +71,7 @@ def UploadAppChunks():
             transaction_id = ""
 
             for _ in range(0, chunk_count):
-                print("\x1b[2K", end = "")
+                print(" " * 80, end = "\r")
                 print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)", end = "\r")
                 data = {
                     "TransactionId": transaction_id,
@@ -91,7 +91,7 @@ def UploadAppChunks():
                     print(result.text)
 
             if tail_size > 0:
-                print("\x1b[2K", end = "")
+                print(" " * 80, end = "\r")
                 print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)")
                 data = {
                     "TransactionId": transaction_id,
