@@ -125,24 +125,77 @@ def UploadAppBlob():
 
 def CreateApp(app_id, blob = False):    
     data = {
-        "BlobId" if blob else "TranscationId": f"{app_id}",
-        "DeviceType": "12",
-        "ApplicationName": "TestApp",
+        "ApplicationName": sys.argv[1],
+        "AutoUpdateVersion": True,
+        "BlobId" if blob else "TranscationId": app_id,
+        "DeviceType": "WinRT",
         "SupportedModels": {
             "Model": [
                 {
-                    "ModelId": 223,
-                    "ModelName": "Windows 10"
+                    "ModelId": 83,
+                    "ModelName": "Desktop"
                 }
             ]
         },
         "PushMode": "OnDemand",
         "Description": "Text value",
-        "EnableProvisioning": True,
+        "EnableProvisioning": False,
         "UploadViaLink": False,
         "FileName": sys.argv[1],
         "IsDependencyFile": False,
-        "LocationGroupId": 14522
+        "LocationGroupId": 14522,
+        "DeploymentOptions": {
+            "WhenToInstall": {
+                "DataContingencies": [],
+                "DiskSpaceRequiredInKb": 10,
+                "DevicePowerRequired": 20,
+                "RamRequiredInMb": 30
+            },
+            "HowToInstall": {
+                "InstallContext": "Device",
+                "InstallCommand": "echo test",
+                "AdminPrivileges": True,
+                "DeviceRestart": "DoNotRestart",
+                "RetryCount": 0,
+                "RetryIntervalInMinutes": 0,
+                "InstallTimeoutInMinutes": 15,
+                "InstallerRebootExitCode": "1641",
+                "InstallerSuccessExitCode": "0"
+            },
+            "WhenToCallInstallComplete": {
+                "UseAdditionalCriteria": True,
+                "IdentifyApplicationBy": "DefiningCriteria",
+                "CriteriaList": [
+                    {
+                        "CriteriaType": "FileExists",
+                        "FileCriteria": {
+                                "Path": "C:\\Program Files\\test\\test",
+                                "VersionCondition": "Any",
+                                "MajorVersion": 0,
+                                "MinorVersion": 0,
+                                "RevisionNumber": 0,
+                                "BuildNumber": 0,
+                                "ModifiedOn": "12-12-1999 12:00"
+                        },
+                        "LogicalCondition": "End"
+                    }
+                ],
+            }
+        },
+        "FilesOptions": {
+            "AppTransformsList": [],
+            "AppPatchesList": [],
+            "ApplicationUnInstallProcess": {
+                "UseCustomScript": False,
+                "CustomScript": {
+                    "CustomScriptType": "Input",
+                    "UninstallCommand": "msiexec /x \"test\" /passive",
+                    "UninstallScriptBlobId": 0,
+                    "UseCustomScript": "true"
+                }
+            }
+        },
+        "SupportedProcessorArchitecture": "x64"
     }
 
     data = json.dumps(data)
@@ -152,7 +205,7 @@ def CreateApp(app_id, blob = False):
 
 
 # Set run to "blob" to upload file as Blob data or "chunk" to upload in Chunks
-run = "chunk"
+run = "blob"
 
 run_blob = run == "blob"
 result = CreateApp(UploadAppBlob() if run_blob else UploadAppChunks(), run_blob)
