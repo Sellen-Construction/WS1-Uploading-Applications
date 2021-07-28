@@ -82,7 +82,7 @@ def UploadAppChunks():
                 }
                 data = json.dumps(data)
 
-                result = CallAPI("/mam/apps/internal/uploadchunk", data, False)
+                result = CallAPI("/mam/apps/internal/uploadchunk", data, True)
                 if result.status_code == 200:
                     current_byte += Config.chunk_size
                     sequence_num += 1
@@ -102,7 +102,7 @@ def UploadAppChunks():
                 }
                 data = json.dumps(data)
 
-                result = CallAPI("/mam/apps/internal/uploadchunk", data, False)
+                result = CallAPI("/mam/apps/internal/uploadchunk", data, True)
         else:
             file.seek(0)
             data = {
@@ -114,7 +114,7 @@ def UploadAppChunks():
             }
             data = json.dumps(data)
 
-            result = CallAPI("/mam/apps/internal/uploadchunk", data, False)
+            result = CallAPI("/mam/apps/internal/uploadchunk", data, True)
             transaction_id = json.loads(result.text)['TranscationId']
     return transaction_id
 
