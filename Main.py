@@ -36,20 +36,25 @@ def ValidateToken():
     if int(time.time()) >= int(Config.token_expiry) - 600:
         GetToken()
 
-def CallAPI(endpoint, data, validate = False):
+def __Call(endpoint, data):
     try:
+        response = ""
         ValidateToken()
         response = requests.post(Config.base_url + endpoint, headers = Config.header, data = data)
-    except:
+    except Exception as ex:
+        print(ex)
+        if "text" in response:
+            print(response.text)
         response = json.loads('{"status_code": 400, "text": "token_error"}', object_hook = lambda d: SimpleNamespace(**d))
+    return response
+
+def CallAPI(endpoint, data, validate = False):
+    response = __Call(endpoint, data)
 
     # If validate is passed True, keep retrying the API call until we are successful
     while validate and response.status_code != 200:
-        try:
-            ValidateToken()
-            response = requests.post(Config.base_url + endpoint, headers = Config.header, data = data)
-        except:
-            response = json.loads('{"status_code": 400, "text": "token_error"}', object_hook = lambda d: SimpleNamespace(**d))
+        print(f"Validation failed with validate: True and status_code: {response.status_code}. Reattempting validation...")
+        response = __Call(endpoint, data)
     
     return response
 
@@ -72,7 +77,7 @@ def UploadAppChunks():
                     "TransactionId": transaction_id,
                     "ChunkData": base64.b64encode(bytes[current_byte : current_byte + Config.chunk_size]).decode(),
                     "ChunkSequenceNumber": sequence_num,
-                    "TotalApplicationSize": chunk_count + (1 if tail_size > 0 else 0), # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
+                    "TotalApplicationSize": len(bytes), # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
                     "ChunkSize": Config.chunk_size
                 }
                 data = json.dumps(data)
@@ -92,7 +97,7 @@ def UploadAppChunks():
                     "TransactionId": transaction_id,
                     "ChunkData": base64.b64encode(bytes[current_byte :]).decode(),
                     "ChunkSequenceNumber": sequence_num,
-                    "TotalApplicationSize": chunk_count + (1 if tail_size > 0 else 0), # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
+                    "TotalApplicationSize": len(bytes), # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
                     "ChunkSize": tail_size
                 }
                 data = json.dumps(data)
@@ -104,7 +109,7 @@ def UploadAppChunks():
                     "TransactionId": "",
                     "ChunkData": base64.b64encode(bytes).decode(),
                     "ChunkSequenceNumber": 1,
-                    "TotalApplicationSize": 1, # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
+                    "TotalApplicationSize": len(bytes), # Should this be the total size in bytes or the total chunk count? The API doesn't seem to care, using either doesn't appear to make a difference.
                     "ChunkSize": len(bytes)
                 }
             data = json.dumps(data)
