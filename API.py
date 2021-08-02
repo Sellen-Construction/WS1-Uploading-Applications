@@ -114,7 +114,7 @@ class Core:
 
     def CreateApp(self, filename, app_id, is_blob):
         data = JSON.GetBlob(filename, app_id) if is_blob else JSON.GetChunk(filename, app_id)
-        print(data)
+        print(f"Creating app {filename} using uploaded data with {'Blob' if is_blob else 'Chunk'} ID: {app_id}")
 
         return self.Call("/mam/apps/internal/begininstall", data, True)
 

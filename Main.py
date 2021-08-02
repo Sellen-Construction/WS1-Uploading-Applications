@@ -7,4 +7,7 @@ if len(sys.argv) <= 1:
 
 api = API.Public()
 result = api.UploadApp(sys.argv[1], "chunk")
-print(result.text)
+if result.status_code == 200:
+    print("Uploaded and created successfully!")
+else:
+    print(result.text)
