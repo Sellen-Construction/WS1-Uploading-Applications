@@ -120,8 +120,8 @@ class Core:
 
 class Public:
     def __init__(self):
-        self.cloud = Core()
+        self.core = Core()
 
     def UploadApp(self, filename, type):
         is_blob = type == "blob"
-        return self.cloud.CreateApp(filename, self.cloud.UploadAppBlob(filename) if is_blob else self.cloud.UploadAppChunk(filename), is_blob)
+        return self.core.CreateApp(filename, self.core.UploadAppBlob(filename) if is_blob else self.core.UploadAppChunk(filename), is_blob)
