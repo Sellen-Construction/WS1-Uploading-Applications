@@ -55,8 +55,9 @@ class Core:
 
         # If validate is passed True, keep retrying the API call until we are successful
         attempt_count = 1
-        while validate and response.status_code != 200 and attempt_count <= 25:
-            print(f"Validation failed with validate: True and status_code: {response.status_code}. Reattempting validation...")
+        while validate and response.status_code != 200 and attempt_count <= Config.validation_limit:
+            print(f"API call validation failed with status_code: {response.status_code}: {response.text}")
+            print(f"Reattempting API call to {endpoint}...")
             response = self.__Call(endpoint, data)
             attempt_count += 1
 
