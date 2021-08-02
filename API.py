@@ -1,4 +1,4 @@
-import requests, json, base64, time, math, sys
+import requests, json, base64, time, math, sys, os
 import Config, JSON
 from types import SimpleNamespace
 
@@ -62,64 +62,44 @@ class Core:
 
         return response
 
-    def UploadAppChunk(self, filename):
-            with open(filename, "rb") as file:
-                bytes = file.read()
+    def __GetChunks(self, file):
+        chunk = file.read(Config.chunk_size)
+        while chunk:
+            yield chunk
+            chunk = file.read(Config.chunk_size)
 
-                if len(bytes) > Config.chunk_size:
-                    chunk_count, tail_size = divmod(len(bytes), Config.chunk_size)
+    def UploadAppChunk(self, filename):
+            sequence_num = 1
+            transaction_id = ""
+            file_size = os.path.getsize(filename)
+            
+            with open(filename, "rb") as file:
+                chunk_count, tail_size = divmod(file_size, Config.chunk_size)
+                if chunk_count > 1:
                     print(f"Found file larger than {Config.chunk_size} bytes. Splitting into {chunk_count + 1} chunks...")
 
-                    current_byte = 0
-                    sequence_num = 1
-                    transaction_id = ""
+                for chunk in self.__GetChunks(file):
+                    print(" " * 80, end = "\r")
+                    print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)", end = "\r")
 
-                    for _ in range(0, chunk_count):
-                        print(" " * 80, end = "\r")
-                        print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)", end = "\r")
-                        data = {
-                            "TransactionId": transaction_id,
-                            "ChunkData": base64.b64encode(bytes[current_byte : current_byte + Config.chunk_size]).decode(),
-                            "ChunkSequenceNumber": sequence_num,
-                            "TotalApplicationSize": len(bytes),
-                            "ChunkSize": Config.chunk_size
-                        }
-                        data = json.dumps(data)
-
-                        result = self.Call("/mam/apps/internal/uploadchunk", data, True)
-                        if result.status_code == 200:
-                            current_byte += Config.chunk_size
-                            sequence_num += 1
-                            transaction_id = json.loads(result.text)['TranscationId']
-                        else:
-                            print(result.text, file = sys.stderr)
-
-                    if tail_size > 0:
-                        print(" " * 80, end = "\r")
-                        print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)")
-                        data = {
-                            "TransactionId": transaction_id,
-                            "ChunkData": base64.b64encode(bytes[current_byte :]).decode(),
-                            "ChunkSequenceNumber": sequence_num,
-                            "TotalApplicationSize": len(bytes),
-                            "ChunkSize": tail_size
-                        }
-                        data = json.dumps(data)
-
-                        result = self.Call("/mam/apps/internal/uploadchunk", data, True)
-                else:
-                    file.seek(0)
                     data = {
-                        "TransactionId": "",
-                        "ChunkData": base64.b64encode(bytes).decode(),
-                        "ChunkSequenceNumber": 1,
-                        "TotalApplicationSize": len(bytes),
-                        "ChunkSize": len(bytes)
+                        "TransactionId": transaction_id,
+                        "ChunkData": base64.b64encode(chunk).decode(),
+                        "ChunkSequenceNumber": sequence_num,
+                        "TotalApplicationSize": file_size,
+                        "ChunkSize": Config.chunk_size
                     }
                     data = json.dumps(data)
 
                     result = self.Call("/mam/apps/internal/uploadchunk", data, True)
-                    transaction_id = json.loads(result.text)['TranscationId']
+                    if result.status_code == 200:
+                        sequence_num += 1
+                        transaction_id = json.loads(result.text)['TranscationId']
+                    else:
+                        print() # Print an extra line so we can see the previous output
+                        print(result.text, file = sys.stderr)
+                print() # Print en extra line once we have finished uploading
+            
             return transaction_id
 
     def UploadAppBlob(self, filename):
