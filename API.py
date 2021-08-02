@@ -46,7 +46,7 @@ class Core:
             print(ex)
             if "text" in response:
                 print(response.text)
-            response = json.loads('{"status_code": 400, "text": "token_error"}', object_hook = lambda d: SimpleNamespace(**d))
+            response = json.loads('{"status_code": 400, "text": "validation_error"}', object_hook = lambda d: SimpleNamespace(**d))
         
         return response
     
@@ -54,9 +54,11 @@ class Core:
         response = self.__Call(endpoint, data)
 
         # If validate is passed True, keep retrying the API call until we are successful
-        while validate and response.status_code != 200:
+        attempt_count = 1
+        while validate and response.status_code != 200 and attempt_count <= 25:
             print(f"Validation failed with validate: True and status_code: {response.status_code}. Reattempting validation...")
             response = self.__Call(endpoint, data)
+            attempt_count += 1
 
         return response
 
@@ -134,7 +136,7 @@ class Core:
         data = JSON.GetBlob(filename, app_id) if is_blob else JSON.GetChunk(filename, app_id)
         print(data)
 
-        return self.Call("/mam/apps/internal/begininstall", data, False)
+        return self.Call("/mam/apps/internal/begininstall", data, True)
 
 class Public:
     def __init__(self):
