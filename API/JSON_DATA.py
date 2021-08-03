@@ -1,3 +1,5 @@
+# This file contains functions that return valid JSON payload data for API calls
+
 import json
 
 def GetBlob(filename, blob_id):
