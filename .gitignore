@@ -1,4 +1,4 @@
 Config.py
-_*
+__pycache__
 *.zip
 *.pdf
