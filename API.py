@@ -76,12 +76,13 @@ class Core:
             
             with open(filename, "rb") as file:
                 chunk_count, tail_size = divmod(file_size, Config.chunk_size)
+                chunk_count += 1 if tail_size > 0 else 0
                 if chunk_count > 1:
-                    print(f"Found file larger than {Config.chunk_size} bytes. Splitting into {chunk_count + 1} chunks...")
+                    print(f"Found file larger than {Config.chunk_size} bytes. Splitting into {chunk_count} chunks...")
 
                 for chunk in self.__GetChunks(file):
                     print(" " * 80, end = "\r")
-                    print(f"Processing and uploading chunk {sequence_num}/{chunk_count + 1} ({math.floor((sequence_num / (chunk_count + 1)) * 100 * 100) / 100}%)", end = "\r")
+                    print(f"Processing and uploading chunk {sequence_num}/{chunk_count} ({math.floor((sequence_num / (chunk_count)) * 100 * 100) / 100}%)", end = "\r")
 
                     data = {
                         "TransactionId": transaction_id,
