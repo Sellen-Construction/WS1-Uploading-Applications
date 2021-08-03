@@ -1,0 +1,9 @@
+header = ""
+base_url = "https://asXXXX.awmdm.com/API" # Replace XXXX with your environment #
+key = ""
+id = ""
+secret = ""
+token_url = "https://na.uemauth.vmwservices.com/connect/token" # Replace with your regional token URL
+token_expiry = 0
+chunk_size = 2000000
+validation_limit = 10
