@@ -63,13 +63,17 @@ class Core:
 
         return response
 
+class Application:
+    def __init__(self):
+        self.core = Core()
+
     def __GetChunks(self, file):
         chunk = file.read(Config.chunk_size)
         while chunk:
             yield chunk
             chunk = file.read(Config.chunk_size)
 
-    def UploadAppChunk(self, filename):
+    def UploadChunk(self, filename):
             sequence_num = 1
             transaction_id = ""
             file_size = os.path.getsize(filename)
@@ -93,7 +97,7 @@ class Core:
                     }
                     data = json.dumps(data)
 
-                    result = self.Call("/mam/apps/internal/uploadchunk", data, True)
+                    result = self.core.Call("/mam/apps/internal/uploadchunk", data, True)
                     if result.status_code == 200:
                         sequence_num += 1
                         transaction_id = json.loads(result.text)['TranscationId']
@@ -104,7 +108,7 @@ class Core:
             
             return transaction_id
 
-    def UploadAppBlob(self, filename):
+    def UploadBlob(self, filename):
         blob_id = ""
         with open(filename, "rb") as file:
             print(f"Uploading {filename} as a Blob...")
@@ -122,8 +126,8 @@ class Core:
 
 class Public:
     def __init__(self):
-        self.core = Core()
+        self.application = Application()
 
     def UploadApp(self, filename, type):
         is_blob = type == "blob"
-        return self.core.CreateApp(filename, self.core.UploadAppBlob(filename) if is_blob else self.core.UploadAppChunk(filename), is_blob)
+        return self.application.CreateApp(filename, self.application.UploadBlob(filename) if is_blob else self.application.UploadChunk(filename), is_blob)
